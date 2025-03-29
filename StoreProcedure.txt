@@ -1,0 +1,36 @@
+
+-- SHOW PROCEDURE STATUS WHERE Db = 'wineindustry' AND Name = 'search_orders';
+
+-- store procedure in SQL code 
+
+DELIMITER //
+
+CREATE PROCEDURE search_orders(
+    IN p_limit INT,
+    IN p_start INT,
+    IN p_search VARCHAR(255),
+    IN p_status VARCHAR(50)
+)
+BEGIN
+    SELECT 
+        orders.*, 
+        users.firstname as user_name, 
+        users.email, 
+        products.name as product_name, 
+        products.price
+    FROM orders
+    JOIN users ON users.id = orders.user_id
+    JOIN products ON products.id = orders.product_id
+    WHERE 
+        (p_search IS NULL OR p_search = '' OR
+         users.firstname LIKE CONCAT('%', p_search, '%') OR
+         users.email LIKE CONCAT('%', p_search, '%') OR
+         products.name LIKE CONCAT('%', p_search, '%')
+        )
+        AND
+        (p_status IS NULL OR p_status = '' OR orders.status = p_status)
+    ORDER BY orders.created_at DESC
+    LIMIT p_start, p_limit;
+END //
+
+DELIMITER ;
